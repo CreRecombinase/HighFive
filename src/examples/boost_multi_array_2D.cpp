@@ -26,8 +26,9 @@ const size_t size_y = 3;
 int main(void) {
 
     try {
-
-        boost::multi_array<double, 2> my_array(boost::extents[size_x][size_y]);
+      static_assert(std::is_scalar<double>::value,"A double is not a scalar");
+        boost::multi_array<double, 2>
+	  my_array(boost::extents[size_x][size_y]);
 
         for (size_t i = 0; i < size_x; ++i) {
             for (size_t j = 0; j < size_y; ++j) {

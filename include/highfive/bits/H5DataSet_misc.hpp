@@ -19,6 +19,10 @@
 #include <boost/multi_array.hpp>
 #endif
 
+#ifdef H5_USE_EIGEN
+#include  <Eigen/Dense>
+#endif
+
 #include <H5Dpublic.h>
 #include <H5Ppublic.h>
 

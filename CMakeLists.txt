@@ -21,12 +21,20 @@ option(UNIT_TESTS "enable unit tests" TRUE)
 option(USE_BOOST "enable Boost Support" TRUE)
 option(HIGHFIVE_EXAMPLES "Compile examples" TRUE)
 option(HIGHFIVE_PARALLEL_HDF5 "Enable Parallel HDF5 support" FALSE)
+option(USE_EIGEN "Enable Eigen support" TRUE)
 
 if(HIGHFIVE_PARALLEL_HDF5)
 set(HDF5_PREFER_PARALLEL TRUE)
 endif()
 
 find_package(HDF5 QUIET REQUIRED)
+if(USE_EIGEN)
+  
+  find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+  add_definitions(-DH5_USE_EIGEN)
+  include_directories ( ${EIGEN3_INCLUDE_DIR} )
+#  include_directories(SYSTEM ${Eigen3_INCLUDE_DIRS})
+endif()
 
 set(Boost_NO_BOOST_CMAKE TRUE)
 
@@ -38,6 +46,7 @@ endif()
 
 if(HIGHFIVE_PARALLEL_HDF5)
   find_package(MPI)
+  include_directories(MPI_C_INCLUDE_PATH)
 endif()
 
 # Absolute include used to avoid interaction with downstream projects including

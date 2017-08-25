@@ -9,6 +9,11 @@
 #ifndef H5SLICE_TRAITS_HPP
 #define H5SLICE_TRAITS_HPP
 
+
+#ifdef H5_USE_EIGEN
+#include  <Eigen/Dense>
+#endif
+
 #include <cstdlib>
 #include <vector>
 
@@ -28,6 +33,8 @@ class SliceTraits;
 class ElementSet {
   public:
     explicit ElementSet(const std::vector<std::size_t>& element_ids);
+
+
 
   private:
     std::vector<std::size_t> _ids;

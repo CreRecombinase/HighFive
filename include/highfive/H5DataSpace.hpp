@@ -10,9 +10,14 @@
 #define H5DATASPACE_HPP
 
 #include <vector>
+
 #ifdef H5_USE_BOOST
 #include <boost/multi_array.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
+#endif
+
+#ifdef H5_USE_EIGEN
+#include  <Eigen/Dense>
 #endif
 
 #include "H5Object.hpp"
@@ -85,6 +90,12 @@ class DataSpace : public Object {
 
     template <typename Value>
     static DataSpace From(const boost::numeric::ublas::matrix<Value>& mat);
+#endif
+
+#ifdef H5_USE_EIGEN
+  template <typename Derived> static DataSpace From(const Eigen::EigenBase<Derived> &container);
+  //    template <typename Derived>
+  //  static DataSpace From(const Eigen::EigenBase<Derived> &container);
 #endif
 
   protected:

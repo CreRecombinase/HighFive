@@ -35,7 +35,8 @@ if(COMPILER_SUPPORTS_CXX11)
   if(HIGHFIVE_PARALLEL_HDF5)
     target_link_libraries(tests_high_five_cpp11_bin ${MPI_C_LIBRARIES})
   endif()
-  target_compile_options(tests_high_five_cpp11_bin PRIVATE "-std=c++11")
+  target_compile_options(tests_high_five_bin PRIVATE "-g -std=c++11")
+  target_compile_options(tests_high_five_cpp11_bin PRIVATE "-g -std=c++11")
 
   add_test(NAME tests_high_five_cpp11 COMMAND tests_high_five_cpp11_bin)
 

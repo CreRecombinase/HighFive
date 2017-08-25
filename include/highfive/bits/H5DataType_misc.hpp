@@ -14,6 +14,11 @@
 #include "../H5DataType.hpp"
 #include "../H5Exception.hpp"
 
+#ifdef H5_USE_EIGEN
+#include  <Eigen/Dense>
+#endif
+
+
 #include <H5Tpublic.h>
 
 namespace HighFive {
@@ -116,6 +121,18 @@ inline AtomicType<std::string>::AtomicType() {
     // define encoding to UTF-8 by default
     H5Tset_cset(_hid, H5T_CSET_UTF8);
 }
+
+// #ifdef H5_USE_EIGEN
+//   //Use recursion to get Atomic Type (?)
+//   template <typename Derived>
+//   inline AtomicType< Eigen::EigenBase<Derived> >::AtomicType() {
+//     typedef typename Eigen::internal::traits<Derived>::Scalar Scal;
+    
+//     _hid = AtomicType<Scal>::AtomicType();
+// }
+// #endif
+  
+  
 }
 
 #endif // H5DATATYPE_MISC_HPP

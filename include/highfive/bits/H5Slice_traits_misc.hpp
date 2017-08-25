@@ -23,6 +23,15 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #endif
 
+#ifdef H5_USE_EIGEN
+#include  <Eigen/Dense>
+#define VERIFY_ARRAY(T) \
+  static_assert(std::is_scalar<T>::value|std::is_same<std::string,T>::value,	\
+		#T " is not scalar or string type" );
+#endif
+
+
+
 #include <H5Dpublic.h>
 #include <H5Ppublic.h>
 
@@ -80,7 +89,7 @@ SliceTraits<Derivate>::select(const std::vector<size_t>& offset,
                             stride.empty() ? NULL : stride_local.data(),
                             count_local.data(), NULL) < 0) {
         HDF5ErrMapper::ToException<DataSpaceException>(
-            "Unable to select hyperslap");
+            "Unable to select hyperslab");
     }
 
     return Selection(DataSpace(count), space,
@@ -144,6 +153,8 @@ SliceTraits<Derivate>::select(const ElementSet& elements) const {
                      details::get_dataset(static_cast<const Derivate*>(this)));
 }
 
+  
+
 template <typename Derivate>
 template <typename T>
 inline void SliceTraits<Derivate>::read(T& array) const {
@@ -202,7 +213,10 @@ inline void SliceTraits<Derivate>::write(const T& buffer) {
         throw DataSpaceException(ss.str());
     }
 
-    const AtomicType<typename details::type_of_array<type_no_const>::type>
+
+    typedef typename details::type_of_array<type_no_const>::type scal_type;
+        VERIFY_ARRAY(scal_type);
+    const AtomicType<scal_type>
         array_datatype;
 
     // Apply pre write convertions

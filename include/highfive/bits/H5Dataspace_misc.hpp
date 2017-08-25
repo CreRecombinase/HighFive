@@ -137,6 +137,17 @@ DataSpace::From(const boost::numeric::ublas::matrix<Value>& mat) {
 
 #endif
 
+#ifdef H5_USE_EIGEN
+template <typename Derived>
+inline DataSpace
+DataSpace::From(const Eigen::EigenBase<Derived> &container) {
+    std::vector<size_t> dims(2);
+    dims[0] = container.rows();
+    dims[1] = container.cols();
+    return DataSpace(dims);
+}
+#endif
+
 namespace details {
 
 /// dimension checks @internal

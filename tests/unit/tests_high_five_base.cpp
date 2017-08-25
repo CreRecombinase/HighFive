@@ -28,12 +28,28 @@
 #include <boost/multi_array.hpp>
 #endif
 
+#ifdef H5_USE_EIGEN
+#include  <Eigen/Dense>
+// #define VERIFY_ARRAY(T) \
+//   static_assert(std::is_scalar<T>::value,\
+// 		#T " is not scalar or string type" );
+
+
+#endif
+
+
+
 using namespace HighFive;
 
 typedef boost::mpl::list<float, double> floating_numerics_test_types;
 typedef boost::mpl::list<int, unsigned int, long, unsigned long, unsigned char,
                          char, float, double, long long, unsigned long long>
     numerical_test_types;
+
+typedef boost::mpl::list<int, double>
+    short_numerical_test_types;
+
+
 typedef boost::mpl::list<int, unsigned int, long, unsigned long, unsigned char,
                          char, float, double, std::string>
     dataset_test_types;
@@ -630,7 +646,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MultiArray3D, T, numerical_test_types) {
 }
 
 template <typename T>
-void ublas_matrix_Test() {
+  void ublas_matrix_Test() {
+
+
 
     typedef typename boost::numeric::ublas::matrix<T> Matrix;
 
@@ -673,6 +691,71 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ublas_matrix, T, numerical_test_types) {
 
     ublas_matrix_Test<T>();
 }
+
+#endif
+
+
+
+#ifdef H5_USE_EIGEN
+
+template <typename T>
+  void eigen_matrix_Test() {
+
+
+  // typedef typename Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> Matrix;
+  
+  using Matrix = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>;
+  typedef typename Eigen::internal::traits <Matrix>::Scalar Scal;
+  //     typedef typename boost::numeric::ublas::matrix<T> Matrix;
+
+
+  static_assert(details::is_matrix_expression<Matrix>::value,"Matrix must be a matrix expression!");
+  
+    std::ostringstream filename;
+    filename << "h5_rw_eigen_" << typeid(Scal).name() << "_test.h5";
+
+    const size_t size_x = 10, size_y = 10;
+    const std::string DATASET_NAME("dset");
+
+    Matrix mat(size_x, size_y);
+
+    ContentGenerate<Scal> generator;
+    for (int i = 0; i < mat.rows(); ++i) {
+        for (int j = 0; j < mat.cols(); ++j) {
+            mat(i, j) = generator();
+        }
+    }
+
+    //Create a new file using the default property lists.
+    File file(filename.str(), File::ReadWrite | File::Create | File::Truncate);
+    // static_assert(std::is_base_of<Eigen::EigenBase<Matrix>,Matrix>::value,"Matrix is a base of EigenBase");
+
+
+    
+    
+    // VERIFY_ARRAY(scal_type);
+    DataSet dataset = file.createDataSet<Scal>(DATASET_NAME, DataSpace::From(mat));
+    static_assert(!std::is_same<Matrix,typename details::type_of_array<Matrix>::type>::value ,"type of array should change Eigen Matrix!");
+    dataset.write(mat);
+
+    // read it back
+    Matrix result;
+    std::cerr<<"About to read!"<<std::endl;
+    dataset.read(result);
+    std::cerr<<"Finished reading!"<<std::endl;
+    for (size_t i = 0; i < size_x; ++i) {
+        for (size_t j = 0; j < size_y; ++j) {
+            // std::cout << array[i][j][k] << " ";
+            BOOST_CHECK_EQUAL(mat(i, j), result(i, j));
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(eigen_matrix, T, short_numerical_test_types) {
+
+    eigen_matrix_Test<T>();
+}
+
 
 #endif
 

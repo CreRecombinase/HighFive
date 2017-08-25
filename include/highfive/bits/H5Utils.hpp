@@ -20,6 +20,12 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #endif
 
+#ifdef H5_USE_EIGEN
+#include  <Eigen/Dense>
+#endif
+
+
+
 #ifndef H5_USE_CXX11
 #if ___cplusplus >= 201103L
 #define H5_USE_CXX11 1
@@ -46,83 +52,131 @@
 
 namespace HighFive {
 
-namespace details {
+  namespace details {
 
-// determine at compile time number of dimensions of in memory datasets
-template <typename T>
-struct array_dims {
-    static const size_t value = 0;
-};
+    // determine at compile time number of dimensions of in memory datasets
+    template <typename T>
+    struct array_dims {
+      static const size_t value = 0;
+    };
 
-template <typename T>
-struct array_dims<std::vector<T> > {
-    static const size_t value = 1 + array_dims<T>::value;
-};
+    template <typename T>
+    struct array_dims<std::vector<T> > {
+      static const size_t value = 1 + array_dims<T>::value;
+    };
 
-template <typename T>
-struct array_dims<T*> {
-    static const size_t value = 1 + array_dims<T>::value;
-};
+    template <typename T>
+    struct array_dims<T*> {
+      static const size_t value = 1 + array_dims<T>::value;
+    };
 
-template <typename T, std::size_t N>
-struct array_dims<T[N]> {
-    static const size_t value = 1 + array_dims<T>::value;
-};
+    template <typename T, std::size_t N>
+    struct array_dims<T[N]> {
+      static const size_t value = 1 + array_dims<T>::value;
+    };
+
+#ifdef H5_USE_EIGEN
+    template <typename Derived>
+    struct array_dims<Eigen::DenseBase<Derived> > {
+      static const size_t value = (Eigen::DenseBase<Derived>::IsVectorAtCompileTime) ? 1: 2;
+    };
+  
+#endif
+ 
 
 #ifdef H5_USE_BOOST
-template <typename T, std::size_t Dims>
-struct array_dims<boost::multi_array<T, Dims> > {
-    static const size_t value = Dims;
-};
+    template <typename T, std::size_t Dims>
+    struct array_dims<boost::multi_array<T, Dims> > {
+      static const size_t value = Dims;
+    };
 
-template <typename T>
-struct array_dims<boost::numeric::ublas::matrix<T> > {
-    static const size_t value = 2;
-};
+    template <typename T>
+    struct array_dims<boost::numeric::ublas::matrix<T> > {
+      static const size_t value = 2;
+    };
 #endif
 
-// determine recursively the size of each dimension of a N dimension vector
-template <typename T>
-void get_dim_vector_rec(const T& vec, std::vector<size_t>& dims) {
-    (void)dims;
-    (void)vec;
-}
+    // determine recursively the size of each dimension of a N dimension vector
+    template <typename T>
+    void get_dim_vector_rec(const T& vec, std::vector<size_t>& dims) {
+      (void)dims;
+      (void)vec;
+    }
 
-template <typename T>
-void get_dim_vector_rec(const std::vector<T>& vec, std::vector<size_t>& dims) {
-    dims.push_back(vec.size());
-    get_dim_vector_rec(vec[0], dims);
-}
+    template <typename T>
+    void get_dim_vector_rec(const std::vector<T>& vec, std::vector<size_t>& dims) {
+      dims.push_back(vec.size());
+      get_dim_vector_rec(vec[0], dims);
+    }
 
-template <typename T>
-std::vector<size_t> get_dim_vector(const std::vector<T>& vec) {
-    std::vector<size_t> dims;
-    get_dim_vector_rec(vec, dims);
-    return dims;
-}
+    template <typename T>
+    std::vector<size_t> get_dim_vector(const std::vector<T>& vec) {
+      std::vector<size_t> dims;
+      get_dim_vector_rec(vec, dims);
+      return dims;
+    }
 
-// determine at compile time recursively the basic type of the data
-template <typename T>
-struct type_of_array {
-    typedef T type;
-};
 
-template <typename T>
-struct type_of_array<std::vector<T> > {
-    typedef typename type_of_array<T>::type type;
-};
+
+
+  
+    // determine at compile time recursively the basic type of the data
+
+    //   template <typename T, typename=typename std::enable_if<(std::is_scalar<T>::value|std::is_same<std::string,T>::value)>
+    //   struct type_of_array {
+    //   typedef T type;
+    // };
+
+    template <typename T>
+    struct is_valid_array{
+      static const bool value =std::is_scalar<T>::value||std::is_same<std::string,T>::value;
+    };
+
+  
+    template <typename T,typename = void>
+    struct type_of_array;
+
+    template<typename T>
+    struct type_of_array<T,typename std::enable_if<is_valid_array<T>::value>::type>{
+      using bname=T;
+      typedef bname type;
+    };
+  
+
+    template <typename T>
+    struct type_of_array<std::vector<T> > {
+      typedef typename type_of_array<T>::type type;
+    };
 
 #ifdef H5_USE_BOOST
-template <typename T, std::size_t Dims>
-struct type_of_array<boost::multi_array<T, Dims> > {
-    typedef typename type_of_array<T>::type type;
-};
+    template <typename T, std::size_t Dims>
+    struct type_of_array<boost::multi_array<T, Dims> > {
+      typedef typename type_of_array<T>::type type;
+    };
 
-template <typename T>
-struct type_of_array<boost::numeric::ublas::matrix<T> > {
-    typedef typename type_of_array<T>::type type;
-};
+    template <typename T>
+    struct type_of_array<boost::numeric::ublas::matrix<T> > {
+      typedef typename type_of_array<T>::type type;
+    };
 #endif
+
+#ifdef H5_USE_EIGEN
+    // template <typename Derived>  struct is_eigen_type : std::is_base_of<Eigen::EigenBase<Derived>, Derived> {};
+
+    template<typename Derived>
+    struct is_matrix_expression{
+      static const bool value = std::is_base_of<Eigen::MatrixBase<typename std::decay<Derived>::type >, typename std::decay<Derived>::type>::value;
+    };
+
+
+    template <typename T>
+    struct type_of_array<T,typename std::enable_if<is_matrix_expression<T>::value>::type> {
+      typedef typename Eigen::internal::traits<T>::Scalar type;
+    };  
+
+
+#endif
+  
 
 template <typename T>
 struct type_of_array<T*> {
@@ -133,6 +187,13 @@ template <typename T, std::size_t N>
 struct type_of_array<T[N]> {
     typedef typename type_of_array<T>::type type;
 };
+
+
+
+
+
+
+  
 
 // same type compile time check
 template <typename T, typename U>
@@ -181,6 +242,9 @@ template <typename T>
 struct enable_if<true, T> {
     typedef T type;
 };
+
+
+  
 
 // remove const
 template <typename Type>

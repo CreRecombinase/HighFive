@@ -21,6 +21,11 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #endif
 
+
+#ifdef H5_USE_EIGEN
+#include  <Eigen/Dense>
+#endif
+
 #include <H5Dpublic.h>
 #include <H5Ppublic.h>
 
@@ -243,6 +248,46 @@ struct data_converter<boost::numeric::ublas::matrix<T>, void> {
     std::vector<size_t> _dims;
 };
 #endif
+
+
+
+
+#ifdef H5_USE_EIGEN
+// apply conversion to Eigen
+template <typename Derived>
+struct data_converter<Eigen::DenseBase<Derived>, void> {
+
+  typedef typename Eigen::DenseBase<Derived> Matrix;
+
+  inline data_converter(Matrix& array, DataSpace& space, size_t dim = 0)
+    : _dims(space.getDimensions()) {
+    assert(_dims.size() == array_dims<Matrix>::value);
+    (void)dim;
+    (void)array;
+  }
+
+    inline typename type_of_array<Derived>::type* transform_read(Matrix& array) {
+        boost::array<std::size_t, 2> sizes = {{array.rows(), array.cols()}};
+
+        assert(std::equal(_dims.begin(), _dims.end(), sizes.begin()));
+
+	  return (array.data());
+    }
+
+    inline typename type_of_array<Derived>::type* transform_write(Matrix& array) {
+      return (array.data());
+    }
+
+    inline void process_result(Matrix& array) { (void)array; }
+
+    std::vector<size_t> _dims;
+};
+#endif
+
+
+
+
+
 
 // apply conversion for vectors nested vectors
 template <typename T>
