@@ -629,6 +629,54 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MultiArray3D, T, numerical_test_types) {
     MultiArray3DTest<T>();
 }
 
+
+template <typename T>
+void MultiArrayRef3DTest() {
+
+  typedef typename boost::multi_array<T, 3> MultiArray;
+  typedef typename boost::multi_array_ref<T, 3> MultiArrayRef;
+
+  std::ostringstream filename;
+  filename << "h5_rw_multiarray_" << typeid(T).name() << "_test.h5";
+
+  const size_t size_x = 10, size_y = 10, size_z = 10;
+  const std::string DATASET_NAME("dset");
+  std::vector<T> base_vec(size_x*size_y*size_z);
+  MultiArrayRef array(base_vec.data(),boost::extents[size_x][size_y][size_z]);
+
+  ContentGenerate<T> generator;
+  std::generate(array.data(), array.data() + array.num_elements(), generator);
+
+  // Create a new file using the default property lists.
+  File file(filename.str(), File::ReadWrite | File::Create | File::Truncate);
+
+  DataSet dataset =
+    file.createDataSet<T>(DATASET_NAME, DataSpace::From(array));
+
+  dataset.write(array);
+
+  // read it back
+  MultiArray result;
+
+  dataset.read(result);
+
+  for (size_t i = 0; i < size_x; ++i) {
+    for (size_t j = 0; j < size_y; ++j) {
+      for (size_t k = 0; k < size_z; ++k) {
+	// std::cout << array[i][j][k] << " ";
+	BOOST_CHECK_EQUAL(array[i][j][k], result[i][j][k]);
+      }
+    }
+  }
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(MultiArrayRef3D, T, numerical_test_types) {
+
+    MultiArrayRef3DTest<T>();
+}
+
+
+
 template <typename T>
 void ublas_matrix_Test() {
 

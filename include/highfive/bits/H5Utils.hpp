@@ -74,6 +74,11 @@ template <typename T, std::size_t Dims>
 struct array_dims<boost::multi_array<T, Dims> > {
     static const size_t value = Dims;
 };
+template <typename T, std::size_t Dims>
+struct array_dims<boost::multi_array_ref<T, Dims> > {
+    static const size_t value = Dims;
+};
+  
 
 template <typename T>
 struct array_dims<boost::numeric::ublas::matrix<T> > {
@@ -117,6 +122,10 @@ template <typename T, std::size_t Dims>
 struct type_of_array<boost::multi_array<T, Dims> > {
     typedef typename type_of_array<T>::type type;
 };
+template <typename T, std::size_t Dims>
+struct type_of_array<boost::multi_array_ref<T, Dims> > {
+    typedef typename type_of_array<T>::type type;
+};  
 
 template <typename T>
 struct type_of_array<boost::numeric::ublas::matrix<T> > {

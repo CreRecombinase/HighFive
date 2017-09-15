@@ -210,6 +210,40 @@ struct data_converter<boost::multi_array<T, Dims>, void> {
     std::vector<size_t> _dims;
 };
 
+template <typename T, std::size_t Dims>
+struct data_converter<boost::multi_array_ref<T, Dims>, void> {
+
+    typedef typename boost::multi_array_ref<T, Dims> MultiArrayRef;
+
+    inline data_converter(MultiArrayRef& array, DataSpace& space, size_t dim = 0)
+        : _dims(space.getDimensions()) {
+        assert(_dims.size() == Dims);
+        (void)dim;
+        (void)array;
+    }
+
+    inline typename type_of_array<T>::type* transform_read(MultiArrayRef& array) {
+        if (std::equal(_dims.begin(), _dims.end(), array.shape()) == false) {
+	  boost::array<typename MultiArrayRef::index, Dims> ext;
+            std::copy(_dims.begin(), _dims.end(), ext.begin());
+            array.resize(ext);
+        }
+        return array.data();
+    }
+
+    inline typename type_of_array<T>::type* transform_write(MultiArrayRef& array) {
+        return array.data();
+    }
+
+    inline void process_result(MultiArrayRef& array) { (void)array; }
+
+    std::vector<size_t> _dims;
+};
+  
+
+
+  
+
 // apply conversion to boost matrix ublas
 template <typename T>
 struct data_converter<boost::numeric::ublas::matrix<T>, void> {

@@ -22,6 +22,9 @@ class DataType;
 template <typename Derivate>
 class NodeTraits {
   public:
+
+
+
     ///
     /// \brief createDataSet Create a new dataset in the current file of
     /// datatype type and of size space

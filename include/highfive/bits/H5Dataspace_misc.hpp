@@ -125,6 +125,16 @@ DataSpace::From(const boost::multi_array<Value, Dims>& container) {
     }
     return DataSpace(dims);
 }
+  
+template <typename Value, std::size_t Dims>
+inline DataSpace
+DataSpace::From(const boost::multi_array_ref<Value, Dims>& container) {
+    std::vector<size_t> dims(Dims);
+    for (std::size_t i = 0; i < Dims; ++i) {
+        dims[i] = container.shape()[i];
+    }
+    return DataSpace(dims);
+}  
 
 template <typename Value>
 inline DataSpace

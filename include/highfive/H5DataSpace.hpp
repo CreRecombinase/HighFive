@@ -80,11 +80,13 @@ class DataSpace : public Object {
     static DataSpace From(const std::vector<Value>& vec);
 
 #ifdef H5_USE_BOOST
-    template <typename Value, std::size_t Dims>
-    static DataSpace From(const boost::multi_array<Value, Dims>& container);
+  template <typename Value, std::size_t Dims>
+  static DataSpace From(const boost::multi_array<Value, Dims>& container);
+  template <typename Value, std::size_t Dims>
+  static DataSpace From(const boost::multi_array_ref<Value, Dims>& container);
 
-    template <typename Value>
-    static DataSpace From(const boost::numeric::ublas::matrix<Value>& mat);
+  template <typename Value>
+  static DataSpace From(const boost::numeric::ublas::matrix<Value>& mat);
 #endif
 
   protected:
