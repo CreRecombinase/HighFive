@@ -25,6 +25,8 @@ option(USE_BOOST "enable Boost Support" TRUE)
 option(HIGHFIVE_EXAMPLES "Compile examples" TRUE)
 option(HIGHFIVE_PARALLEL_HDF5 "Enable Parallel HDF5 support" FALSE)
 
+file(GLOB HIGHFIVE_INC ${PROJECT_SOURCE_DIR}/include/highfive/*.hpp)
+file(GLOB HIGHFIVE_INC_BITS ${PROJECT_SOURCE_DIR}/include/highfive/bits/*.hpp)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_STATIC_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
@@ -56,12 +58,13 @@ if(HIGHFIVE_PARALLEL_HDF5)
 endif()
 
 if (USE_BLOSC)
+    FIND_PACKAGE(blosc)
     set(BLOSC_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/lib/blosc")
     set(BLOSC_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/lib/blosc")
     set(BLOSC_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${BLOSC_INSTALL_DIR} -DPLUGIN_INSTALL_PATH=${BLOSC_INSTALL_DIR})
     ExternalProject_Add(hdf5-blosc
             PREFIX ${BLOSC_PREFIX}
-            GIT_REPOSITORY https://github.com/Blosc/hdf5-blosc.git
+            GIT_REPOSITORY https://github.com/CreRecombinase/hdf5-blosc.git
             INSTALL_DIR ${BLOSC_INSTALL_DIR}
             CMAKE_ARGS ${BLOSC_CMAKE_ARGS}
             )
@@ -83,8 +86,7 @@ endif ()
 include(${PROJECT_SOURCE_DIR}/CMake/PackageConfig.cmake)
 
 if(HIGHFIVE_EXAMPLES)
-    file(GLOB HIGHFIVE_INC ${PROJECT_SOURCE_DIR}/include/highfive/*.hpp)
-    file(GLOB HIGHFIVE_INC_BITS ${PROJECT_SOURCE_DIR}/include/highfive/bits/*.hpp)
+
     add_subdirectory(src/examples)
 endif()
 
